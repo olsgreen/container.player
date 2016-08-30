@@ -15,30 +15,24 @@
     </style>
 </head>
 <body>
-    <div id="player" class="container-player"></div>
-    <div id="player2" class="container-player"></div>
-    <div id="player3" class="container-player"></div>
+    <div style="display: table; width: 100%; height: 100%;">
+        <div style="display: table-row;">
+            <div style="display: table-cell; vertical-align: middle; text-align: center; height: 100%;">
+                <div style="display: inline-block; height: 200; width: 50%;">
+                    <div id="player" class="container-player"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script>
         $(function() {
             $('#player').ContainerPlayer({
+                forceAspect: true,
                 youTube: {  
                     videoId: 'quG1iBo8Gc8',
                     poster: 'test/background2.jpg',
                 },
-            });
-
-            $('#player2').ContainerPlayer({
-                ratio: 4 / 3,
-                youTube: { videoId: 'EUHcNeg_e9g', poster: 'test/background3.jpg' },
-            });
-
-            $('#player3').ContainerPlayer({
-                html5: { 
-                    src: 'test/video.mp4',
-                    poster: 'test/background.jpg',
-                }
-            }).on('video.playing video.paused video.loaded video.ended', function(e) {
-                console.log(e);
             });
         });
     </script>

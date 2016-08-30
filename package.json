@@ -1,7 +1,7 @@
 {
   "name": "container.player",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.9.0",
+  "description": "Implement background / container videos like a boss.",
   "main": "container.player.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,6 +9,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "jquery": "^2.2.4"
+    "gulp": "^3.9.1",
+    "jquery": "^2.2.4",
+    "laravel-elixir": "^6.0.0-10"
   }
 }

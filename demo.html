@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Container Based Background Video Player</title>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="src/container.player.js"></script>
+    <link href="src/container.player.css" rel="stylesheet">
+</head>
+<body>
+    <div id="player" class="video-container"></div>
+    <div id="player2" class="video-container"></div>
+    <div id="player3" class="video-container"></div>
+    <script>
+        $(function() {
+            $('#player').ContainerPlayer({
+                type: 'youtube',
+                youTube: { videoId: 'quG1iBo8Gc8' },
+            });
+            $('#player2').ContainerPlayer({
+                type: 'youtube',
+                //youTube: { videoId: 'quG1iBo8Gc8' },
+            });
+            $('#player3').ContainerPlayer();
+        });
+    </script>
+</body>
+</html>

@@ -47,7 +47,6 @@
             }
 
             self.options = $.extend(true, {}, self.defaults, userOptions);
-
             
             self.ID = parseInt(Math.random() * 1000000);
             self.outerID = 'containerPlayerOuter' + self.ID;

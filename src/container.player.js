@@ -119,32 +119,6 @@
             self.$container.append(self.player.$outer.append(self.player.$inner));
         },
 
-        videoLoaded: function() {
-            this.$container
-                .addClass('loaded')
-                .trigger('video.loaded', this);
-        },
-
-        videoPlaying: function() {
-            this.$container
-                .removeClass('paused')
-                .addClass('playing')
-                .trigger('video.playing', this);
-        },
-
-        videoPaused: function() {
-            this.$container
-                .removeClass('playing')
-                .addClass('paused')
-                .trigger('video.paused', this);
-        },
-
-        videoEnded: function() {
-            this.$container
-                .removeClass('playing')
-                .trigger('video.ended', this);
-        },
-
         resize: function() {
             
             var self = this;
@@ -184,6 +158,63 @@
 
             $YTPlayerPlayer = null;
         },
+
+        videoLoaded: function() {
+            this.$container
+                .addClass('loaded')
+                .trigger('video.loaded', this);
+        },
+
+        videoPlaying: function() {
+            this.$container
+                .removeClass('paused')
+                .addClass('playing')
+                .trigger('video.playing', this);
+        },
+
+        videoPaused: function() {
+            this.$container
+                .removeClass('playing')
+                .addClass('paused')
+                .trigger('video.paused', this);
+        },
+
+        videoEnded: function() {
+            this.$container
+                .removeClass('playing')
+                .trigger('video.ended', this);
+        },
+
+        play: function() {
+            this.adapter.play();
+        },
+
+        pause: function() {
+            this.adapter.pause();
+        },
+
+        goTo: function(secs) {
+            this.adapter.goTo(secs);
+        },
+    },
+
+    AbstactAdapter = {
+
+        init: function(containerPlayer) {
+            throw "Not implemented";
+        },
+
+        play: function() {
+            throw "Not implemented";
+        },
+
+        pause: function() {
+            throw "Not implemented";
+        },
+
+        goTo: function() {
+            throw "Not implemented";
+        }  
     },
 
     HTML5Adapter = {
@@ -286,27 +317,71 @@
                 break;
             }
         },
+
+        play: function() {
+            this.$video[0].play();
+        },
+
+        pause: function() {
+            this.$video[0].pause();
+        },
+
+        goTo: function(secs) {
+            this.$video[0].currentTime = secs;
+        }
     },
 
-    YouTubeAdapter = {
+    YouTubeAdapter = $.extend(Object.create(AbstactAdapter), {
+        // Default settings for the adapter.
         defaults: {
-            youTube: {
-                videoId: '',
-                playerVars: {
-                    iv_load_policy: 3,
-                    modestbranding: 1,
-                    showinfo: 0,
-                    wmode: 'opaque',
-                    branding: 0,
-                    autohide: 1,
-                    rel: 0,
-                }
+            videoId: '',
+            playerVars: {
+                iv_load_policy: 3,
+                modestbranding: 1,
+                showinfo: 0,
+                wmode: 'opaque',
+                branding: 0,
+                autohide: 1,
+                rel: 0,
             }
         },
 
         init: function(containerPlayer) {
             var self = this;
 
+            // Make a local reference to the player
+            self.containerPlayer = containerPlayer;
+
+            // Merge the default and user specified options.
+            self.options = $.extend(
+                true, {}, self.defaults, self.containerPlayer.options.youTube
+            );
+
+            // Poster
+            if (typeof self.options.poster !== "undefined") {
+                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.poster+')');
+            }
+
+            // Autoplay
+            if (typeof self.options.playerVars.autoplay === "undefined") {
+                self.options.playerVars.autoplay = self.containerPlayer.options.autoplay ? 1 : 0;
+            }
+
+            // Loop
+            if (typeof self.options.playerVars.loop === "undefined") {
+                self.options.playerVars.loop = self.options.loop ? 1 : 0;
+
+                if (self.options.loop && typeof self.options.playerVars.playlist === "undefined") {
+                    self.options.playerVars.playlist = self.containerPlayer.options.youTube.videoId;
+                }
+            }
+
+            // Controls
+            if (typeof self.options.playerVars.controls === "undefined") {
+                self.options.playerVars.controls = self.containerPlayer.options.controls ? 1 : 0;
+            }
+
+            // Define the global YouTube scope for API loading.
             if (typeof global.YouTube === "undefined") {
                 global.YouTube = {
                     apiLoading: false,
@@ -314,84 +389,62 @@
                 };
             }
 
-            self.containerPlayer = containerPlayer;
-            self.options = $.extend(true, {}, self.defaults, self.containerPlayer.options);
+            // When the YouTube API is ready create a new player instance.
+            self.whenApiIsReady(self.createPlayer.bind(self));
 
-            //
-            // Setup
-            //
-
-            // Poster
-            if (typeof self.options.youTube.poster !== "undefined") {
-                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.youTube.poster+')');
-            }
-
-            // Autoplay
-            if (typeof self.options.youTube.playerVars.autoplay === "undefined") {
-                self.options.youTube.playerVars.autoplay = self.options.autoplay ? 1 : 0;
-            }
-
-            // Loop
-            if (typeof self.options.youTube.playerVars.loop === "undefined") {
-                self.options.youTube.playerVars.loop = self.options.loop ? 1 : 0;
-
-                if (self.options.loop && typeof self.options.youTube.playerVars.playlist === "undefined") {
-                    self.options.youTube.playerVars.playlist = self.options.youTube.videoId;
-                }
-            }
-
-            // Controls
-            if (typeof self.options.youTube.playerVars.controls === "undefined") {
-                self.options.youTube.playerVars.controls = self.options.controls ? 1 : 0;
-            }
-
-            self.whenApiLoaded(self.setupPlayer.bind(self));
+            // Load the YouTube API
+            self.loadApi();
         },
 
-        loadAPI: function() {
-            // Load Youtube API
-            var tag = document.createElement('script'),
-            head = document.getElementsByTagName('head')[0];
-
-            if (window.location.origin == 'file://') {
-                tag.src = 'http://www.youtube.com/iframe_api';
-            } else {
-                tag.src = '//www.youtube.com/iframe_api';
-            }
-
-            head.appendChild(tag);
-
-            // Clean up Tags.
-            head = null;
-            tag = null;
-        },
-
-        whenApiLoaded: function(callback) {
+        whenApiIsReady: function(callback) {
+            // Immediatly make the callback if the YouTube API is loaded.
             if (typeof YT === 'object')  {
                 callback();
                 return;
-            } else if (typeof YT === 'undefined' && global.YouTube.apiLoading === false) {
-                // Prevents Ready Event from being called twice
-                global.YouTube.apiLoading = true;
+            } 
 
-                // Creates deferred so, other players know when to wait.
-                window.onYouTubeIframeAPIReady = function() {
-                    window.onYouTubeIframeAPIReady = null;
-                    global.YouTube.onApiLoad.resolve();
-                };
-
-                this.loadAPI();
-            }
-
+            // Add the callback to the queue to be called once the API has loaded.
             global.YouTube.onApiLoad.done(function() { callback(); });
         },
 
-        setupPlayer: function() {
+        loadApi: function() {
+            if (typeof YT === 'undefined' && global.YouTube.apiLoading === false) {
+                global.YouTube.apiLoading = true;
+
+                // Listen for the ready call from the YouTube API.                
+                window.onYouTubeIframeAPIReady = function() {
+                    window.onYouTubeIframeAPIReady = null;
+
+                    // Resolve all of the callbacks that are currently 
+                    // waiting for the API to finish loading.
+                    global.YouTube.onApiLoad.resolve();
+                };
+
+                // Load Youtube API
+                var tag = document.createElement('script'),
+                head = document.getElementsByTagName('head')[0];
+
+                if (window.location.origin == 'file://') {
+                    tag.src = 'http://www.youtube.com/iframe_api';
+                } else {
+                    tag.src = '//www.youtube.com/iframe_api';
+                }
+
+                head.appendChild(tag);
+
+                // Clean up Tags.
+                head = null;
+                tag = null;
+            }
+        },
+
+        createPlayer: function() {
             var self = this;
 
+            // Create a new YouTube player instance with our options.
             self.player = new YT.Player(self.containerPlayer.innerID, {
-                videoId: self.options.youTube.videoId,
-                playerVars: self.options.youTube.playerVars,
+                videoId: self.options.videoId,
+                playerVars: self.options.playerVars,
                 events: {
                     'onReady': self.onPlayerReady.bind(self),
                     'onStateChange': self.onPlayerStateChange.bind(self),
@@ -400,15 +453,18 @@
         },
 
         onPlayerReady: function(event) {
+            // Tell the player that the video has been loaded.
             this.containerPlayer.videoLoaded();
 
-            if (this.options.muted) {
+            // Mute the video if our options specify so.
+            if (this.containerPlayer.options.muted) {
                 event.target.mute();
             }
-            //event.target.playVideo();
         },
 
         onPlayerStateChange: function(event) {
+            // When the YouTube players state changes we 
+            // relay the change events to our player.
             switch (event.data) {
                 case YT.PlayerState.PLAYING:
                     this.containerPlayer.videoPlaying();
@@ -421,18 +477,34 @@
                 break;
             }
         },
-    };
+
+        play: function() {
+            // Shim to play the video.
+            this.player.playVideo();
+        },
+
+        pause: function() {
+            // Shim to pause the video.
+            this.player.pauseVideo();
+        },
+
+        goTo: function(secs) {
+            // Shim to goTo a specified position within the video.
+            this.player.seekTo(secs);
+        }
+    });
 
     $.fn.ContainerPlayer = function(options) {
 
         return this.each(function() {
             var el = this;
+            $(el).data("player.init", true);
 
-            $(el).data("ctplayer-init", true);
             var player = Object.create(ContainerPlayer);
             player.init(el, options);
-            $.data(el, "ctPlayer", player);
+            $.data(el, "player", player);
         });
+
     };
 
 })(jQuery, window, document);

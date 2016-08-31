@@ -517,11 +517,20 @@
         },
 
         onPlayerStateChange: function(event) {
+            var self = this;
+
             // When the YouTube players state changes we
             // relay the change events to our player.
             switch (event.data) {
                 case YT.PlayerState.PLAYING:
-                    this.containerPlayer.videoPlaying();
+                    // We wait for the video to start playing before 
+                    // fireing the 'playing' event/
+                    var interval = setInterval(function() {
+                            if (self.player.getCurrentTime() >= 0.5) {
+                                clearInterval(interval);
+                                self.containerPlayer.videoPlaying();
+                            }
+                    }, 50);
                 break;
                 case YT.PlayerState.PAUSED:
                     this.containerPlayer.videoPaused();
@@ -681,6 +690,8 @@
         },
 
         createPlayer: function() {
+            var self = this;
+
             // Due to the Vimeo JS API not supporting their experimental background 
             // switch, we must build the iFrame manually and then attach their API.
             var $iframe = $('<iframe></iframe>').prop('src', this.getVideoUrl());
@@ -696,8 +707,19 @@
                 this.player.setVolume(0);
             }
 
-            // Events
-            this.player.on('play', this.containerPlayer.videoPlaying.bind(this.containerPlayer));
+            // Events            
+            this.player.on('play', function(e) {
+                // We wait for the video to start playing before 
+                // fireing the 'playing' event/
+                var interval = setInterval(function() {
+                    self.player.getCurrentTime().then(function(secs) {
+                        if (secs > 0) {
+                            clearInterval(interval);
+                            self.containerPlayer.videoPlaying();
+                        }
+                    });
+                }, 50);
+            });
             this.player.on('pause', this.containerPlayer.videoPaused.bind(this.containerPlayer));
             this.player.on('ended', this.containerPlayer.videoEnded.bind(this.containerPlayer));
             this.player.on('loaded', this.containerPlayer.videoLoaded.bind(this.containerPlayer));

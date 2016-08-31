@@ -29,9 +29,13 @@
             $('body').ContainerPlayer({
                 overlay: { color: 'rgba(0,0,0,0.4)' },
                 vimeo: {  
-                    videoId: '180014191',
+                    videoId: '179882954',
                     poster: '../test/background2.jpg',
                 },
+                /*youTube: {  
+                    videoId: 'quG1iBo8Gc8',
+                    poster: '../test/background2.jpg',
+                },*/
             }).on('video.playing video.paused video.loaded video.ended', function(e) {
                 console.log(e);
             });

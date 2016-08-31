@@ -22,18 +22,21 @@
         height: 100%;
     }
 
-    .container-player-inner {
+    .container-player-inner,
+    .container-player-poster {
         position: absolute;
     }
 
-    &.youtube iframe {
-        opacity: 0;
-    }
+    &.youtube, &.vimeo {
+        iframe {
+            opacity: 0;
+        }
 
-    &.youtube.playing iframe,
-    &.youtube.paused iframe {
-        opacity: 1;
-        animation: revealVideo .6s;
+        &.playing iframe,
+        &.paused iframe {
+            opacity: 1;
+            animation: revealVideo .25s;
+        }
     }
 
     .container-player-overlay {

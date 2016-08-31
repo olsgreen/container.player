@@ -23,6 +23,11 @@
         };
     }
 
+    String.prototype.replaceAll = function(search, replacement) {
+        var target = this;
+        return target.replace(new RegExp(search, 'g'), replacement);
+    };
+
     var ContainerPlayer = {
 
         // Default options for the player.
@@ -78,6 +83,12 @@
                 this.$container.addClass('youtube');
                 return Object.create(YouTubeAdapter);
             } 
+
+            // Vimeo
+            else if (typeof this.options.vimeo === 'object') {
+                this.$container.addClass('vimeo');
+                return Object.create(VimeoAdapter);
+            }
 
             // HTML5
             else if (typeof this.options.html5 === 'object') {
@@ -310,7 +321,7 @@
                 this.options.props.controls = this.containerPlayer.options.controls;
             }
 
-            // Controls
+            // Muted
             if (typeof this.options.props.muted === "undefined") {
                 this.options.props.muted = this.containerPlayer.options.muted;
             }
@@ -542,6 +553,173 @@
 
         goTo: function(secs) {
             this.player.seekTo(secs);
+        }
+    });
+
+    VimeoAdapter = $.extend(Object.create(AbstactAdapter), {
+
+        // Default options for the adapter.
+        defaults: {
+            videoId: '',
+            playerVars: {
+                autopause: false,
+                byline: false,
+                color: '00adef',
+                portrait: false,
+                title: false
+            }
+        },
+
+        init: function(containerPlayer) {
+            var self = this;
+
+            // Make a local reference to the player
+            self.containerPlayer = containerPlayer;
+
+            // Merge the default and user specified options.
+            self.options = $.extend(
+                true, {}, self.defaults, self.containerPlayer.options.vimeo
+            );
+
+            // Set the video id.
+            self.options.playerVars.id = self.options.videoId;
+
+            // Define the global Vimeo scope for API loading.
+            if (typeof global.Vimeo === "undefined") {
+                global.Vimeo = {
+                    apiLoading: false,
+                    onApiLoad: $.Deferred(),
+                    apiCheckInterval: null,
+                };
+            }
+
+            // Poster
+            if (typeof self.options.poster !== "undefined") {
+                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.poster+')');
+            }
+
+            // Autoplay
+            if (typeof self.options.playerVars.autoplay === "undefined") {
+                self.options.playerVars.autoplay = self.containerPlayer.options.autoplay;
+            }
+
+            // Controls
+            if (typeof self.options.playerVars.controls === "undefined") {
+                self.options.playerVars.background = self.containerPlayer.options.controls ? false : true;
+            }
+
+            // Loop
+            if (typeof this.options.playerVars.loop === "undefined") {
+                this.options.playerVars.loop = this.containerPlayer.options.loop;
+            }
+
+            self.whenApiIsReady(self.createPlayer.bind(this));
+
+            self.loadApi();
+        },
+
+        whenApiIsReady: function(callback) {
+            // Immediatly make the callback if the Vimeo API is loaded.
+            if (typeof Vimeo === 'object')  {
+                callback();
+                return;
+            }
+
+            // Add the callback to the queue to be called once the API has loaded.
+            global.Vimeo.onApiLoad.done(function() { callback(); });
+        },
+
+        loadApi: function() {
+            if (typeof Vimeo === 'undefined' && global.Vimeo.apiLoading === false) {
+                global.Vimeo.apiLoading = true;
+
+                // Listen for the ready call from the YouTube API.
+                global.Vimeo.apiCheckInterval = setInterval(function() {
+                    if (typeof Vimeo !== 'undefined') {
+                        clearInterval(global.Vimeo.apiCheckInterval);
+
+                        // Resolve all of the callbacks that are currently
+                        // waiting for the API to finish loading.
+                        global.Vimeo.onApiLoad.resolve();
+                    }
+                }, 100);
+
+                // Load API
+                var tag = document.createElement('script'),
+                head = document.getElementsByTagName('head')[0];
+
+                if (window.location.origin == 'file://') {
+                    tag.src = 'http://player.vimeo.com/api/player.js';
+                } else {
+                    tag.src = '//player.vimeo.com/api/player.js';
+                }
+
+                head.appendChild(tag);
+
+                // Clean up Tags.
+                head = null;
+                tag = null;
+            }
+        },
+
+        getVideoUrl: function() {
+            var url, host, params;
+            
+            // Build the parameter string and replace 
+            // string booleans with integers.
+            params = $.param(this.options.playerVars)
+                .replaceAll('false', '0')
+                .replaceAll('true', '1');
+
+            if (window.location.origin == 'file://') {
+                host = 'http://player.vimeo.com/video/';
+            } else {
+                host = '//player.vimeo.com/video/';
+            }
+
+            return host+this.options.videoId+'?'+params;
+        },
+
+        createPlayer: function() {
+            // Due to the Vimeo JS API not supporting their experimental background 
+            // switch, we must build the iFrame manually and then attach their API.
+            var $iframe = $('<iframe></iframe>').prop('src', this.getVideoUrl());
+
+            // Attach the frame
+            this.containerPlayer.player.$inner.append($iframe);
+
+            // Boot the player
+            this.player = new Vimeo.Player($iframe[0]);
+
+            // Mute if needed
+            if (this.containerPlayer.options.muted) {
+                this.player.setVolume(0);
+            }
+
+            // Events
+            this.player.on('play', this.containerPlayer.videoPlaying.bind(this.containerPlayer));
+            this.player.on('pause', this.containerPlayer.videoPaused.bind(this.containerPlayer));
+            this.player.on('ended', this.containerPlayer.videoEnded.bind(this.containerPlayer));
+            this.player.on('loaded', this.containerPlayer.videoLoaded.bind(this.containerPlayer));
+
+            $frame = null;
+        },  
+
+        /*
+         | Shims to allow adapter player control 
+         | from the base player.
+         */
+
+        play: function() {
+            this.player.play();
+        },
+
+        pause: function() {
+            this.player.pause();
+        },
+
+        goTo: function(secs) {
+            this.player.setCurrentTime(secs);
         }
     });
 

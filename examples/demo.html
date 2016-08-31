@@ -2,9 +2,9 @@
 <html>
 <head>
     <title>Container Based Background Video Player</title>
-    <script src="node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="dist/container.player.min.js"></script>
-    <link href="dist/container.player.min.css" rel="stylesheet">
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../dist/container.player.min.js"></script>
+    <link href="../dist/container.player.min.css" rel="stylesheet">
     <style type="text/css">
         body, html {
             margin: 0;
@@ -23,19 +23,19 @@
             $('#player').ContainerPlayer({
                 youTube: {  
                     videoId: 'quG1iBo8Gc8',
-                    poster: 'test/background2.jpg',
+                    poster: '../test/background2.jpg',
                 },
             });
 
             $('#player2').ContainerPlayer({
                 ratio: 4 / 3,
-                youTube: { videoId: 'EUHcNeg_e9g', poster: 'test/background3.jpg' },
+                youTube: { videoId: 'EUHcNeg_e9g', poster: '../test/background3.jpg' },
             });
 
             $('#player3').ContainerPlayer({
                 html5: { 
-                    src: 'test/video.mp4',
-                    poster: 'test/background.jpg',
+                    src: '../test/video.mp4',
+                    poster: '../test/background.jpg',
                 }
             }).on('video.playing video.paused video.loaded video.ended', function(e) {
                 console.log(e);

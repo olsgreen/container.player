@@ -12,6 +12,7 @@
 
 (function($, window, document) {
 
+    // Global namespace.
     var global = window.ContainerPlayer = {};
 
     if (typeof Object.create !== "function") {
@@ -24,6 +25,7 @@
 
     var ContainerPlayer = {
 
+        // Default options for the player.
         defaults: {
             autoplay: true,
             loop: true,
@@ -37,52 +39,49 @@
         init: function(el, userOptions) {
             var self = this;
 
+            // Pipework
             self.$window = $(window);
-
-            if ('BODY' === el.tagName) {
-                self.$container = $('<div class="container-player fullscreen-background"></div>');
-                $(el).append(self.$container);
-            } else {
-                self.$container = $(el);
-            }
-
+            self.$container = $(el);
             self.options = $.extend(true, {}, self.defaults, userOptions);
-            
             self.ID = parseInt(Math.random() * 1000000);
             self.outerID = 'containerPlayerOuter' + self.ID;
             self.innerID = 'containerPlayerInner' + self.ID;
             self.overlayID = 'containerPlayerOverlay' + self.ID;
 
-            self.createContainer();
+            // Create a container if the selected element is the <body>.
+            if ('BODY' === el.tagName) {
+                self.$container = $('<div class="container-player fullscreen-background"></div>');
+                $(el).append(self.$container);
+            }
 
+            // Create the player DOM.
+            self.createPlayerDOM();
+
+            // Detect which adapter we're using.
             if (typeof this.options.youTube === 'object') {
+                // YouTube
                 this.adapter = Object.create(YouTubeAdapter);
                 self.$container.addClass('youtube');
             } else if (typeof this.options.html5 === 'object') {
+                // HTML5
                 this.adapter = Object.create(HTML5Adapter);
                 self.$container.addClass('html5');
             } else {
                 throw "Invalid options passed, no adapter configuration found.";
             }
 
+            // Boot the adapter.
             this.adapter.init(this);
 
-            // Listen for Resize Event
+            // Listen for the resize event.
             self.$window.on('resize.ContainerPlayer' + self.ID, function() {
                 self.resize();
-            });
-
-            self.resize(self);
+            }).trigger('resize.ContainerPlayer' + self.ID);
 
             return self;
         },
 
-        setDimensions: function($container) {
-            this.options.width = $container.width();
-            this.options.height = $container.height();
-        },
-
-        createContainer: function() {
+        createPlayerDOM: function() {
             var self = this;
 
             /*jshint multistr: true */
@@ -93,21 +92,31 @@
             if (self.options.overlay) {
                 self.player.$overlay = $('<div id="' + self.overlayID + '" class="container-player-overlay"></div>');
 
+                // Class name
+                if (typeof self.options.overlay.class !== "undefined") {
+                    self.player.$overlay.addClass(self.options.overlay.class);
+                }
+
+                // Opacity
                 if (typeof self.options.overlay.opacity !== "undefined") {
                     self.player.$overlay.css('opacity', self.options.overlay.opacity);
                 }
 
+                // Color
                 if (typeof self.options.overlay.color !== "undefined") {
                     self.player.$overlay.css('background-color', self.options.overlay.color);
                 }
 
+                // Background image
                 if (typeof self.options.overlay.image !== "undefined") {
                     self.player.$overlay.css('background-image', 'url('+self.options.overlay.image+')');
 
+                    // Background size
                     if (typeof self.options.overlay.backgroundSize !== "undefined") {
                         self.player.$overlay.css('background-size', 'url('+self.options.overlay.backgroundSize+')');
                     }
 
+                    // Background repeat
                     if (typeof self.options.overlay.backgroundRepeat !== "undefined") {
                         self.player.$overlay.css('background-repeat', 'url('+self.options.overlay.backgroundRepeat+')');
                     }
@@ -116,49 +125,65 @@
                 self.$container.append(self.player.$overlay);
             }
 
-            self.$container.append(self.player.$outer.append(self.player.$inner));
+            self.$container.append(
+                self.player.$outer.append(self.player.$inner)
+            );
         },
 
         resize: function() {
-            
-            var self = this;
+            var self = this,
+                pWidth, // player width, to be defined
+                pHeight; // player height, tbd;
 
-            self.setDimensions(self.$container);
+            // Update the containers dimensions
+            self.options.width = self.$container.width();
+            self.options.height = self.$container.height();
 
-            var pWidth, // player width, to be defined
-                pHeight, // player height, tbd
-                $YTPlayerPlayer = $('#' + self.innerID);
+            // Detect if the inner element has been replaced or removed.
+            if (! $.contains(document, self.player.$inner[0])) {
+                self.player.$inner = $('#' + self.innerID);
+            }
 
+            // Maintain the players height and width.
             if (self.options.forceAspect) {
                 pHeight = (self.options.width / self.options.ratio).toFixed(3);
                 self.$container.height(pHeight);
 
-                $YTPlayerPlayer.width(self.options.width).css({
+                self.player.$inner.css({
                     left: 0,
                     top: 0,
                     height: pHeight,
+                    width: self.options.width,
                 });
 
                 return;
             }
 
+            // player width is greater, offset left; reset top
             if (self.options.fitContainer && (self.options.width / self.options.ratio < self.options.height)) {
-                pWidth = Math.ceil(self.options.height * self.options.ratio); // get new player width
-                $YTPlayerPlayer.width(pWidth).height(self.options.height).css({
+                pWidth = Math.ceil(self.options.height * self.options.ratio);
+                self.player.$inner.width(pWidth).height(self.options.height).css({
                     left: (self.options.width - pWidth) / 2,
                     top: 0
-                }); // player width is greater, offset left; reset top
-            } else { // new video width < window width (gap to right)
-                pHeight = Math.ceil(self.options.width / self.options.ratio); // get new player height
-                $YTPlayerPlayer.width(self.options.width).height(pHeight).css({
-                    left: 0,
-                    top: (self.options.height - pHeight) / 2
-                }); // player height is greater, offset top; reset left
+                });
             }
 
-            $YTPlayerPlayer = null;
+            // player height is greater, offset top; reset left
+            else {
+                pHeight = Math.ceil(self.options.width / self.options.ratio); 
+                self.player.$inner.width(self.options.width).height(pHeight).css({
+                    left: 0,
+                    top: (self.options.height - pHeight) / 2
+                });
+            }
+
         },
 
+        /*
+         | Add the various player state CSS classes 
+         | and trigger their events on the element.
+         */
+        
         videoLoaded: function() {
             this.$container
                 .addClass('loaded')
@@ -185,6 +210,11 @@
                 .trigger('video.ended', this);
         },
 
+        /*
+         | Methods to allow manipulation of the videos 
+         | state via the adapter shims.
+         */
+
         play: function() {
             this.adapter.play();
         },
@@ -199,10 +229,17 @@
     },
 
     AbstactAdapter = {
+        // Default options for the adapter.
+        defaults: {},
 
         init: function(containerPlayer) {
             throw "Not implemented";
         },
+
+        /*
+         | Shims to allow adapter player control 
+         | from the base player.
+         */
 
         play: function() {
             throw "Not implemented";
@@ -214,94 +251,91 @@
 
         goTo: function() {
             throw "Not implemented";
-        }  
+        }
     },
 
-    HTML5Adapter = {
+    HTML5Adapter = $.extend(Object.create(AbstactAdapter), {
+        // Default options for the adapter.
         defaults: {
-            html5: {
-                sources: [
-                    // ['video/mp4', 'http://my-server.com/path/to/video.mp4']
-                    // ['video/webm', 'http://my-server.com/path/to/video.webm']
-                ],
-                props: {
-                    preload: 'auto', // none | metadata | auto
-                    crossorigin: null, // null | anonymous | use-credentials
-                }
+            sources: [
+                // ['video/mp4', 'http://my-server.com/path/to/video.mp4']
+                // ['video/webm', 'http://my-server.com/path/to/video.webm']
+            ],
+            props: {
+                preload: 'auto', // none | metadata | auto
+                crossorigin: null, // null | anonymous | use-credentials
             }
         },
 
         init: function(containerPlayer) {
-            var self = this;
-
-            self.containerPlayer = containerPlayer;
-            self.options = $.extend(true, {}, self.defaults, self.containerPlayer.options);
+            this.containerPlayer = containerPlayer;
+            this.options = $.extend(true, {}, this.defaults, this.containerPlayer.options.html5);
 
             // If sources aren't defined but a single src options is set the videos src property.
-            if (typeof self.options.html5.src !== 'undefined' &&
-                0 === self.options.html5.sources.length) {
-                self.options.html5.props.src = self.options.html5.src;
+            if (typeof this.options.src !== 'undefined' &&
+                0 === this.options.sources.length) {
+                this.options.props.src = this.options.src;
             }
 
-            //
-            // Setup
-            //
-
             // Poster
-            if (typeof self.options.html5.poster !== "undefined") {
-                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.html5.poster+')');
+            if (typeof this.options.poster !== "undefined") {
+                this.containerPlayer.player.$outer.css('background-image', 'url('+this.options.poster+')');
+                this.options.props.poster = this.options.poster;
             }
 
             // Autoplay
-            if (typeof self.options.html5.props.autoplay === "undefined") {
-                self.options.html5.props.autoplay = self.options.autoplay;
+            if (typeof this.options.props.autoplay === "undefined") {
+                this.options.props.autoplay = this.containerPlayer.options.autoplay;
             }
 
             // Loop
-            if (typeof self.options.html5.props.loop === "undefined") {
-                self.options.html5.props.loop = self.options.loop;
+            if (typeof this.options.props.loop === "undefined") {
+                this.options.props.loop = this.containerPlayer.options.loop;
             }
 
             // Controls
-            if (typeof self.options.html5.props.controls === "undefined") {
-                self.options.html5.props.controls = self.options.controls;
+            if (typeof this.options.props.controls === "undefined") {
+                this.options.props.controls = this.containerPlayer.options.controls;
             }
 
             // Controls
-            if (typeof self.options.html5.props.muted === "undefined") {
-                self.options.html5.props.muted = self.options.muted;
+            if (typeof this.options.props.muted === "undefined") {
+                this.options.props.muted = this.containerPlayer.options.muted;
             }
 
-            self.createHTML5Video();
+            this.createHTML5Video();
         },
 
         createHTML5Video: function() {
-            var $player = $('#' + this.innerID);
-            this.$video = $("<video>Your browser doesn't support HTML5 video tag.</video>");
-            this.$video.on('canplay playing pause', this.onPlayerStateChange.bind(this));
+            // HTML5 video element
+            this.$video = $("<video></video>")
+                .html('Your browser doesn\'t support HTML5 video tag.')
+                .on('canplay playing pause ended', this.onPlayerStateChange.bind(this));
 
-            // Video Properties
-            for (var name in this.options.html5.props) {
-                var value = this.options.html5.props[name];
-
+            // Add the videos properties
+            for (var name in this.options.props) {
+                var value = this.options.props[name];
                 if (value) {
                     this.$video.prop(name, value);
                 }
             }
 
-            // Video Sources
-            for (var source in this.options.html5.sources) {
+            // Add the videos sources
+            for (var source in this.options.sources) {
                 this.$video.append(
                     $('<source></source>')
-                        .prop('src', this.options.html5.sources[source][1])
-                        .prop('type', this.options.html5.sources[source][0])
+                        .prop('src', this.options.sources[source][1])
+                        .prop('type', this.options.sources[source][0])
                 );
             }
 
+            // Add the element to the container
             this.containerPlayer.player.$inner.append(this.$video);
         },
 
         onPlayerStateChange: function(event) {
+            // When the HTML5 elements state changes we
+            // relay the change events to our player.
             switch (event.type) {
                 case 'canplay':
                     this.containerPlayer.videoLoaded();
@@ -318,6 +352,11 @@
             }
         },
 
+        /*
+         | Shims to allow adapter player control 
+         | from the base player.
+         */
+        
         play: function() {
             this.$video[0].play();
         },
@@ -329,10 +368,10 @@
         goTo: function(secs) {
             this.$video[0].currentTime = secs;
         }
-    },
+    }),
 
     YouTubeAdapter = $.extend(Object.create(AbstactAdapter), {
-        // Default settings for the adapter.
+        // Default options for the adapter.
         defaults: {
             videoId: '',
             playerVars: {
@@ -367,15 +406,6 @@
                 self.options.playerVars.autoplay = self.containerPlayer.options.autoplay ? 1 : 0;
             }
 
-            // Loop
-            if (typeof self.options.playerVars.loop === "undefined") {
-                self.options.playerVars.loop = self.options.loop ? 1 : 0;
-
-                if (self.options.loop && typeof self.options.playerVars.playlist === "undefined") {
-                    self.options.playerVars.playlist = self.containerPlayer.options.youTube.videoId;
-                }
-            }
-
             // Controls
             if (typeof self.options.playerVars.controls === "undefined") {
                 self.options.playerVars.controls = self.containerPlayer.options.controls ? 1 : 0;
@@ -401,7 +431,7 @@
             if (typeof YT === 'object')  {
                 callback();
                 return;
-            } 
+            }
 
             // Add the callback to the queue to be called once the API has loaded.
             global.YouTube.onApiLoad.done(function() { callback(); });
@@ -411,11 +441,11 @@
             if (typeof YT === 'undefined' && global.YouTube.apiLoading === false) {
                 global.YouTube.apiLoading = true;
 
-                // Listen for the ready call from the YouTube API.                
+                // Listen for the ready call from the YouTube API.
                 window.onYouTubeIframeAPIReady = function() {
                     window.onYouTubeIframeAPIReady = null;
 
-                    // Resolve all of the callbacks that are currently 
+                    // Resolve all of the callbacks that are currently
                     // waiting for the API to finish loading.
                     global.YouTube.onApiLoad.resolve();
                 };
@@ -463,7 +493,7 @@
         },
 
         onPlayerStateChange: function(event) {
-            // When the YouTube players state changes we 
+            // When the YouTube players state changes we
             // relay the change events to our player.
             switch (event.data) {
                 case YT.PlayerState.PLAYING:
@@ -474,9 +504,20 @@
                 break;
                 case YT.PlayerState.ENDED:
                     this.containerPlayer.videoEnded();
+
+                    // Loop the video
+                    if (this.containerPlayer.options.loop) {
+                        this.goTo(0);
+                        this.play();
+                    }
                 break;
             }
         },
+
+        /*
+         | Shims to allow adapter player control 
+         | from the base player.
+         */
 
         play: function() {
             // Shim to play the video.
@@ -494,17 +535,18 @@
         }
     });
 
+    // Create the plugin.
     $.fn.ContainerPlayer = function(options) {
-
         return this.each(function() {
-            var el = this;
-            $(el).data("player.init", true);
+            var el = this, 
+                player = Object.create(ContainerPlayer);
 
-            var player = Object.create(ContainerPlayer);
+            // Boot the player class.
             player.init(el, options);
+
+            // Expose the player via the elements data method.
             $.data(el, "player", player);
         });
-
     };
 
 })(jQuery, window, document);

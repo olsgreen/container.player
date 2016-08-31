@@ -18,6 +18,8 @@
     .container-player-outer {
         position: relative;
         background-size: cover;
+        width: 100%;
+        height: 100%;
     }
 
     .container-player-inner {
@@ -31,7 +33,7 @@
     &.youtube.playing iframe,
     &.youtube.paused iframe {
         opacity: 1;
-        animation: revealVideo .5s;
+        animation: revealVideo .6s;
     }
 
     .container-player-overlay {

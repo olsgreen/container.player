@@ -17,7 +17,6 @@
 
     .container-player-outer {
         position: relative;
-        background-size: cover;
         width: 100%;
         height: 100%;
     }
@@ -27,15 +26,25 @@
         position: absolute;
     }
 
+    .container-player-poster {
+        background-size: cover;
+    }
+
     &.youtube, &.vimeo {
         iframe {
             opacity: 0;
         }
 
+        &.transition-in {
+            &.playing iframe,
+            &.paused iframe {
+                animation: revealVideo 1s;
+            }
+        }
+
         &.playing iframe,
         &.paused iframe {
             opacity: 1;
-            animation: revealVideo .25s;
         }
     }
 

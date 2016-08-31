@@ -51,6 +51,7 @@
             self.ID = parseInt(Math.random() * 1000000);
             self.outerID = 'containerPlayerOuter' + self.ID;
             self.innerID = 'containerPlayerInner' + self.ID;
+            self.posterID = 'containerPlayerPoster' + self.ID;
             self.overlayID = 'containerPlayerOverlay' + self.ID;
             self.resizeEventID = 'resize.ContainerPlayer' + self.ID;
 
@@ -109,6 +110,7 @@
             self.player = {};
             self.player.$outer = $('<div id="' + self.outerID + '" class="container-player-outer"></div>');
             self.player.$inner = $('<div id="' + self.innerID + '" class="container-player-inner"></div>');
+            self.player.$poster = $('<div id="' + self.posterID + '" class="container-player-poster"></div>');
 
             if (self.options.overlay) {
                 self.player.$overlay = $('<div id="' + self.overlayID + '" class="container-player-overlay"></div>');
@@ -147,8 +149,13 @@
             }
 
             self.$container.append(
-                self.player.$outer.append(self.player.$inner)
+                self.player.$outer.append(self.player.$poster, self.player.$inner)
             );
+        },
+
+        setPoster: function(url)
+        {
+            this.player.$poster.css('background-image', 'url('+url+')');
         },
 
         resize: function() {
@@ -170,11 +177,13 @@
                 pHeight = (self.options.width / self.options.ratio).toFixed(3);
                 self.$container.height(pHeight);
 
-                self.player.$inner.css({
-                    left: 0,
-                    top: 0,
-                    height: pHeight,
-                    width: self.options.width,
+                $([self.player.$inner, self.player.$poster]).each(function() {
+                    $(this).css({
+                        left: 0,
+                        top: 0,
+                        height: pHeight,
+                        width: self.options.width,
+                    });
                 });
 
                 return;
@@ -183,18 +192,22 @@
             // player width is greater, offset left; reset top
             if (self.options.fitContainer && (self.options.width / self.options.ratio < self.options.height)) {
                 pWidth = Math.ceil(self.options.height * self.options.ratio);
-                self.player.$inner.width(pWidth).height(self.options.height).css({
-                    left: (self.options.width - pWidth) / 2,
-                    top: 0
+                $([self.player.$inner, self.player.$poster]).each(function() {
+                    $(this).width(pWidth).height(self.options.height).css({
+                        left: (self.options.width - pWidth) / 2,
+                        top: 0
+                    });
                 });
             }
 
             // player height is greater, offset top; reset left
             else {
                 pHeight = Math.ceil(self.options.width / self.options.ratio); 
-                self.player.$inner.width(self.options.width).height(pHeight).css({
-                    left: 0,
-                    top: (self.options.height - pHeight) / 2
+                $([self.player.$inner, self.player.$poster]).each(function() {
+                    $(this).width(self.options.width).height(pHeight).css({
+                        left: 0,
+                        top: (self.options.height - pHeight) / 2
+                    });
                 });
             }
 
@@ -302,7 +315,7 @@
 
             // Poster
             if (typeof this.options.poster !== "undefined") {
-                this.containerPlayer.player.$outer.css('background-image', 'url('+this.options.poster+')');
+                this.containerPlayer.setPoster(this.options.poster);
                 this.options.props.poster = this.options.poster;
             }
 
@@ -398,6 +411,7 @@
         // Default options for the adapter.
         defaults: {
             videoId: '',
+            tranitionIn: false,
             playerVars: {
                 iv_load_policy: 3,
                 modestbranding: 1,
@@ -422,7 +436,7 @@
 
             // Poster
             if (typeof self.options.poster !== "undefined") {
-                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.poster+')');
+                self.containerPlayer.setPoster(this.options.poster);
             }
 
             // Autoplay
@@ -433,6 +447,11 @@
             // Controls
             if (typeof self.options.playerVars.controls === "undefined") {
                 self.options.playerVars.controls = self.containerPlayer.options.controls ? 1 : 0;
+            }
+
+            // Transition In
+            if (this.options.tranitionIn) {
+                this.containerPlayer.$container.addClass('transition-in');
             }
 
             // Define the global YouTube scope for API loading.
@@ -526,7 +545,7 @@
                     // We wait for the video to start playing before 
                     // fireing the 'playing' event/
                     var interval = setInterval(function() {
-                            if (self.player.getCurrentTime() >= 0.5) {
+                            if (self.player.getCurrentTime() >= 0.26) {
                                 clearInterval(interval);
                                 self.containerPlayer.videoPlaying();
                             }
@@ -570,6 +589,7 @@
         // Default options for the adapter.
         defaults: {
             videoId: '',
+            transitionIn: false,
             playerVars: {
                 autopause: false,
                 byline: false,
@@ -604,7 +624,7 @@
 
             // Poster
             if (typeof self.options.poster !== "undefined") {
-                self.containerPlayer.player.$outer.css('background-image', 'url('+self.options.poster+')');
+                self.containerPlayer.setPoster(this.options.poster);
             }
 
             // Autoplay
@@ -620,6 +640,11 @@
             // Loop
             if (typeof this.options.playerVars.loop === "undefined") {
                 this.options.playerVars.loop = this.containerPlayer.options.loop;
+            }
+
+            // Transition In
+            if (this.options.tranitionIn) {
+                this.containerPlayer.$container.addClass('transition-in');
             }
 
             self.whenApiIsReady(self.createPlayer.bind(this));

@@ -24,10 +24,12 @@
     .container-player-inner,
     .container-player-poster {
         position: absolute;
+        z-index: 0;
     }
 
     .container-player-poster {
         background-size: cover;
+        z-index: 0;
     }
 
     &.youtube, &.vimeo {
@@ -54,7 +56,7 @@
         left: 0;
         bottom: 0;
         right: 0;
-        z-index: 1;
+        z-index: 0;
     }
 
     @keyframes revealVideo {

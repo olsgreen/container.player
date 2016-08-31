@@ -239,6 +239,7 @@
     },
 
     AbstactAdapter = {
+
         // Default options for the adapter.
         defaults: {},
 
@@ -265,6 +266,7 @@
     },
 
     HTML5Adapter = $.extend(Object.create(AbstactAdapter), {
+        
         // Default options for the adapter.
         defaults: {
             sources: [
@@ -381,6 +383,7 @@
     }),
 
     YouTubeAdapter = $.extend(Object.create(AbstactAdapter), {
+
         // Default options for the adapter.
         defaults: {
             videoId: '',
@@ -530,17 +533,14 @@
          */
 
         play: function() {
-            // Shim to play the video.
             this.player.playVideo();
         },
 
         pause: function() {
-            // Shim to pause the video.
             this.player.pauseVideo();
         },
 
         goTo: function(secs) {
-            // Shim to goTo a specified position within the video.
             this.player.seekTo(secs);
         }
     });

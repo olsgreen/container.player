@@ -47,6 +47,7 @@
             self.outerID = 'containerPlayerOuter' + self.ID;
             self.innerID = 'containerPlayerInner' + self.ID;
             self.overlayID = 'containerPlayerOverlay' + self.ID;
+            self.resizeEventID = 'resize.ContainerPlayer' + self.ID;
 
             // Create a container if the selected element is the <body>.
             if ('BODY' === el.tagName) {
@@ -56,29 +57,38 @@
 
             // Create the player DOM.
             self.createPlayerDOM();
-
-            // Detect which adapter we're using.
-            if (typeof this.options.youTube === 'object') {
-                // YouTube
-                this.adapter = Object.create(YouTubeAdapter);
-                self.$container.addClass('youtube');
-            } else if (typeof this.options.html5 === 'object') {
-                // HTML5
-                this.adapter = Object.create(HTML5Adapter);
-                self.$container.addClass('html5');
-            } else {
-                throw "Invalid options passed, no adapter configuration found.";
-            }
+ 
+            // Detect the adapter we are using.
+            self.adapter = self.detectAdapter();
 
             // Boot the adapter.
-            this.adapter.init(this);
+            self.adapter.init(self);
 
             // Listen for the resize event.
-            self.$window.on('resize.ContainerPlayer' + self.ID, function() {
-                self.resize();
-            }).trigger('resize.ContainerPlayer' + self.ID);
+            self.$window
+                .on(self.resizeEventID, self.resize.bind(self))
+                .trigger(self.resizeEventID);
 
             return self;
+        },
+
+        detectAdapter: function() {
+            // YouTube
+            if (typeof this.options.youTube === 'object') {
+                this.$container.addClass('youtube');
+                return Object.create(YouTubeAdapter);
+            } 
+
+            // HTML5
+            else if (typeof this.options.html5 === 'object') {
+                this.$container.addClass('html5');
+                return Object.create(HTML5Adapter);
+            } 
+
+            // No configuration detected, error out.
+            else {
+                throw "Invalid options passed, no adapter configuration found.";
+            }
         },
 
         createPlayerDOM: function() {

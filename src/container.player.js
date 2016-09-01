@@ -47,6 +47,7 @@
             // Pipework
             self.$window = $(window);
             self.$container = $(el);
+            self.$dataContainer = self.$container;
             self.options = $.extend(true, {}, self.defaults, userOptions);
             self.ID = parseInt(Math.random() * 1000000);
             self.outerID = 'containerPlayerOuter' + self.ID;
@@ -81,19 +82,16 @@
         detectAdapter: function() {
             // YouTube
             if (typeof this.options.youTube === 'object') {
-                this.$container.addClass('youtube');
                 return Object.create(YouTubeAdapter);
             } 
 
             // Vimeo
             else if (typeof this.options.vimeo === 'object') {
-                this.$container.addClass('vimeo');
                 return Object.create(VimeoAdapter);
             }
 
             // HTML5
             else if (typeof this.options.html5 === 'object') {
-                this.$container.addClass('html5');
                 return Object.create(HTML5Adapter);
             } 
 
@@ -111,6 +109,10 @@
             self.player.$outer = $('<div id="' + self.outerID + '" class="container-player-outer"></div>');
             self.player.$inner = $('<div id="' + self.innerID + '" class="container-player-inner"></div>');
             self.player.$poster = $('<div id="' + self.posterID + '" class="container-player-poster"></div>');
+
+            self.$container.append(
+                self.player.$outer.append(self.player.$poster, self.player.$inner)
+            );
 
             if (self.options.overlay) {
                 self.player.$overlay = $('<div id="' + self.overlayID + '" class="container-player-overlay"></div>');
@@ -147,10 +149,6 @@
 
                 self.$container.append(self.player.$overlay);
             }
-
-            self.$container.append(
-                self.player.$outer.append(self.player.$poster, self.player.$inner)
-            );
         },
 
         setPoster: function(url)
@@ -244,6 +242,25 @@
                 .trigger('video.ended', this);
         },
 
+        destroy: function() {
+            this.adapter.destroy();
+            this.player.$inner.remove();
+            this.player.$outer.remove();
+            this.player.$poster.remove();
+            
+            if (this.player.$overlay) {
+                this.player.$overlay.remove();
+            }
+            
+            this.$container.empty();
+            this.$container.removeClass('playing paused loaded transition-in');
+            this.$dataContainer.removeData('player');
+
+            for (var k in this) {
+                this[k] = null;
+            }
+        },
+
         /*
          | Methods to allow manipulation of the videos 
          | state via the adapter shims.
@@ -268,6 +285,11 @@
         defaults: {},
 
         init: function(containerPlayer) {
+            throw "Not implemented";
+        },
+
+        destroy: function()
+        {
             throw "Not implemented";
         },
 
@@ -306,6 +328,7 @@
         init: function(containerPlayer) {
             this.containerPlayer = containerPlayer;
             this.options = $.extend(true, {}, this.defaults, this.containerPlayer.options.html5);
+            this.containerPlayer.$container.addClass('html5');
 
             // If sources aren't defined but a single src options is set the videos src property.
             if (typeof this.options.src !== 'undefined' &&
@@ -388,6 +411,17 @@
             }
         },
 
+        destroy: function() {
+            this.pause();
+            this.$video.prop('src', '#');
+            this.$video.remove();
+            this.containerPlayer.$container.removeClass('html5');
+
+            for (var k in this) {
+                this[k] = null;
+            }
+        },
+
         /*
          | Shims to allow adapter player control 
          | from the base player.
@@ -428,6 +462,7 @@
 
             // Make a local reference to the player
             self.containerPlayer = containerPlayer;
+            this.containerPlayer.$container.addClass('youtube');
 
             // Merge the default and user specified options.
             self.options = $.extend(
@@ -566,6 +601,16 @@
             }
         },
 
+        destroy: function() {
+            this.pause();
+            this.player.destroy();
+            this.containerPlayer.$container.removeClass('youtube');
+
+            for (var k in this) {
+                this[k] = null;
+            }
+        },
+
         /*
          | Shims to allow adapter player control 
          | from the base player.
@@ -604,6 +649,7 @@
 
             // Make a local reference to the player
             self.containerPlayer = containerPlayer;
+            this.containerPlayer.$container.addClass('vimeo');
 
             // Merge the default and user specified options.
             self.options = $.extend(
@@ -749,8 +795,18 @@
             this.player.on('ended', this.containerPlayer.videoEnded.bind(this.containerPlayer));
             this.player.on('loaded', this.containerPlayer.videoLoaded.bind(this.containerPlayer));
 
-            $frame = null;
+            $iframe = null;
         },  
+
+        destroy: function() {
+            this.pause();
+            this.containerPlayer.$container.addClass('vimeo');
+            this.player.unload();
+
+            for (var k in this) {
+                this[k] = null;
+            }
+        },
 
         /*
          | Shims to allow adapter player control 
@@ -773,14 +829,15 @@
     // Create the plugin.
     $.fn.ContainerPlayer = function(options) {
         return this.each(function() {
-            var el = this, 
-                player = Object.create(ContainerPlayer);
+            var player = Object.create(ContainerPlayer);
 
             // Boot the player class.
-            player.init(el, options);
+            player.init(this, options);
 
             // Expose the player via the elements data method.
-            $.data(el, "player", player);
+            $.data(this, "player", player);
+
+            player = null;
         });
     };
 

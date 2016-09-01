@@ -77,7 +77,7 @@
                 .trigger(self.resizeEventID);
 
             // Fire the player initialised event.
-            self.$dataContainer.trigger('player.loaded', self);
+            self.$dataContainer.trigger('player.initialised', self);
 
             return self;
         },

@@ -261,6 +261,8 @@
                 this.player.$overlay.remove();
             }
 
+            this.$window.unbind(this.resizeEventID);
+            this.$container.unbind();
             this.$container.empty();
             this.$container.removeClass('playing paused loaded transition-in');
 

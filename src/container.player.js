@@ -212,6 +212,8 @@
                 });
             }
 
+            // Fire player resized event
+            self.$dataContainer.trigger('player.resized', self);
         },
 
         /*
@@ -261,14 +263,15 @@
 
             this.$container.empty();
             this.$container.removeClass('playing paused loaded transition-in');
+
+            // Fire the player destroyed event.
+            this.$dataContainer.trigger('player.destroyed');
+
             this.$dataContainer.removeData('player');
 
             for (var k in this) {
                 this[k] = null;
             }
-
-            // Fire the player destroyed event.
-            self.$dataContainer.trigger('player.destroyed');
         },
 
         /*

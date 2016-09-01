@@ -1,12 +1,12 @@
 {
   "name": "container.player",
   "version": "0.9.0",
-  "description": "Implement background / container videos like a boss.",
+  "description": "A super easy jQuery powered background / container player for HTML5, YouTube & Vimeo videos.",
   "main": "container.player.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Oliver Green <oliver@boxedcode.co.uk>",
   "license": "MIT",
   "devDependencies": {
     "gulp": "^3.9.1",

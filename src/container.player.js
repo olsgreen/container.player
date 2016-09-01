@@ -1,13 +1,13 @@
 /*
  * ContainerPlayer - Implement regular & fullscreen background videos like a boss.
+ * A super easy jQuery powered background / container player for HTML5, YouTube & Vimeo videos.
  *
  * Inspired by Benton Rochesters https://github.com/rochestb/jQuery.YoutubeBackground
  *
- * Licensed under the MIT license:
- *   http://www.opensource.org/licenses/mit-license.php
- *
- * Version:  0.8.0
- *
+ * Author: Oliver Green <oliver@boxedcode.co.uk>
+ * Version:  0.9.0
+ * License: MIT http://www.opensource.org/licenses/mit-license.php
+ * Repository: https://github.com/olsgreen/container.player
  */
 
 (function($, window, document) {
@@ -251,7 +251,7 @@
             if (this.player.$overlay) {
                 this.player.$overlay.remove();
             }
-            
+
             this.$container.empty();
             this.$container.removeClass('playing paused loaded transition-in');
             this.$dataContainer.removeData('player');

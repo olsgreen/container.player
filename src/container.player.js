@@ -77,7 +77,7 @@
                 .trigger(self.resizeEventID);
 
             // Fire the player initialised event.
-            self.$dataContainer.trigger('player.initialised', self);
+            self.$dataContainer.trigger('player.initialised', [self]);
 
             return self;
         },
@@ -213,7 +213,7 @@
             }
 
             // Fire player resized event
-            self.$dataContainer.trigger('player.resized', self);
+            self.$dataContainer.trigger('player.resized', [self]);
         },
 
         /*
@@ -225,7 +225,7 @@
             this.$container
                 .addClass('loaded');
             
-            this.$dataContainer.trigger('video.loaded', this);
+            this.$dataContainer.trigger('video.loaded', [this]);
         },
 
         videoPlaying: function() {
@@ -233,7 +233,7 @@
                 .removeClass('paused')
                 .addClass('playing');
 
-            this.$dataContainer.trigger('video.playing', this);
+            this.$dataContainer.trigger('video.playing', [this]);
         },
 
         videoPaused: function() {
@@ -241,14 +241,14 @@
                 .removeClass('playing')
                 .addClass('paused');
 
-            this.$dataContainer.trigger('video.paused', this);
+            this.$dataContainer.trigger('video.paused', [this]);
         },
 
         videoEnded: function() {
             this.$container
                 .removeClass('playing');
 
-            this.$dataContainer.trigger('video.ended', this);
+            this.$dataContainer.trigger('video.ended', [this]);
         },
 
         destroy: function() {

@@ -76,6 +76,9 @@
                 .on(self.resizeEventID, self.resize.bind(self))
                 .trigger(self.resizeEventID);
 
+            // Fire the player initialised event.
+            self.$dataContainer.trigger('player.loaded', self);
+
             return self;
         },
 
@@ -218,28 +221,32 @@
         
         videoLoaded: function() {
             this.$container
-                .addClass('loaded')
-                .trigger('video.loaded', this);
+                .addClass('loaded');
+            
+            this.$dataContainer.trigger('video.loaded', this);
         },
 
         videoPlaying: function() {
             this.$container
                 .removeClass('paused')
-                .addClass('playing')
-                .trigger('video.playing', this);
+                .addClass('playing');
+
+            this.$dataContainer.trigger('video.playing', this);
         },
 
         videoPaused: function() {
             this.$container
                 .removeClass('playing')
-                .addClass('paused')
-                .trigger('video.paused', this);
+                .addClass('paused');
+
+            this.$dataContainer.trigger('video.paused', this);
         },
 
         videoEnded: function() {
             this.$container
-                .removeClass('playing')
-                .trigger('video.ended', this);
+                .removeClass('playing');
+
+            this.$dataContainer.trigger('video.ended', this);
         },
 
         destroy: function() {
@@ -259,6 +266,9 @@
             for (var k in this) {
                 this[k] = null;
             }
+
+            // Fire the player destroyed event.
+            self.$dataContainer.trigger('player.destroyed');
         },
 
         /*

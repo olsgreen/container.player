@@ -20,6 +20,7 @@
             <div style="display: table-cell; vertical-align: middle; text-align: center; height: 100%;">
                 <div style="display: inline-block; width: 50%;">
                     <div id="player" class="container-player"></div>
+                    (<a href="#" id="play">Play</a> | <a href="#" id="pause">Pause</a> | <a href="#" id="rewind">Rewind</a> | <a href="#" id="goto">Goto 30s</a> | <a href="#" id="mute">Mute</a> | <a href="#" id="setVolumeHalf">50%</a> | <a href="#" id="setVolumeFull">100%</a> | <a href="#" id="unmute">Unmute</a>)
                 </div>
             </div>
         </div>
@@ -29,10 +30,50 @@
         $(function() {
             $('#player').ContainerPlayer({
                 forceAspect: true,
-                youTube: {  
-                    videoId: 'S19uc3URJd4',
+                /*youTube: {  
+                    videoId: 'quG1iBo8Gc8',
                     poster: '../test/background2.jpg',
-                },
+                },*/
+                /*vimeo: {
+                    videoId: '187799034',
+                    poster: '../test/background2.jpg',
+                }*/
+                html5: {
+                    src: '../test/video.mp4',
+                    poster: '../test/video.jpg',
+                }
+            });
+
+            $('#rewind').click(function() {
+                $('#player').data('player').goTo(0);
+            });
+
+            $('#play').click(function() {
+                $('#player').data('player').play();
+            });
+
+            $('#pause').click(function() {
+                $('#player').data('player').pause();
+            });
+
+            $('#goto').click(function() {
+                $('#player').data('player').goTo(10);
+            });
+
+            $('#mute').click(function() {
+                $('#player').data('player').mute();
+            });
+
+            $('#unmute').click(function() {
+                $('#player').data('player').unMute();
+            });
+
+             $('#setVolumeHalf').click(function() {
+                $('#player').data('player').volume(50);
+            });
+
+             $('#setVolumeFull').click(function() {
+                $('#player').data('player').volume(100);
             });
         });
     </script>

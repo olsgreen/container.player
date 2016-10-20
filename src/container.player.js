@@ -292,6 +292,18 @@
         goTo: function(secs) {
             this.adapter.goTo(secs);
         },
+
+        volume: function(percentage) {
+            this.adapter.volume(percentage);
+        },
+
+        mute: function() {
+            this.adapter.mute();
+        },
+
+        unMute: function() {
+            this.adapter.unMute();
+        },
     },
 
     AbstactAdapter = {
@@ -314,16 +326,28 @@
          */
 
         play: function() {
-            throw "Not implemented";
+            throw new Error("Not implemented");
         },
 
         pause: function() {
-            throw "Not implemented";
+            throw new Error("Not implemented");
         },
 
-        goTo: function() {
-            throw "Not implemented";
-        }
+        goTo: function(secs) {
+            throw new Error("Not implemented");
+        },
+
+        volume: function(percentage) {
+            throw new Error("Not implemented");
+        },
+
+        mute: function() {
+            throw new Error("Not implemented");
+        },
+
+        unMute: function() {
+            throw new Error("Not implemented");
+        },
     },
 
     HTML5Adapter = $.extend(Object.create(AbstactAdapter), {
@@ -452,7 +476,19 @@
 
         goTo: function(secs) {
             this.$video[0].currentTime = secs;
-        }
+        },
+
+        volume: function(percentage) {
+            this.$video[0].volume = percentage / 100;
+        },
+
+        mute: function() {
+            this.$video[0].muted = true;
+        },
+
+        unMute: function() {
+            this.$video[0].muted = false;
+        },
     }),
 
     YouTubeAdapter = $.extend(Object.create(AbstactAdapter), {
@@ -641,6 +677,19 @@
 
         goTo: function(secs) {
             this.player.seekTo(secs);
+        },
+
+        mute: function() {
+            this.player.mute();
+        },
+
+        unMute: function() {
+            this.player.unMute();
+        },
+
+        volume: function(percentage) {
+            this.player.setVolume(percentage);
+            this.player.unMute();
         }
     });
 
@@ -838,7 +887,20 @@
 
         goTo: function(secs) {
             this.player.setCurrentTime(secs);
-        }
+        },
+
+        volume: function(percentage) {
+            this.player.setVolume(percentage / 100);
+        },
+
+        mute: function() {
+            this.player.setVolume(0);
+            this.initialPlayerVolume = this.player.getVolume();
+        },
+
+        unMute: function() {
+            this.player.setVolume(this.initialPlayerVolume || 0.7);
+        },
     });
 
     // Create the plugin.

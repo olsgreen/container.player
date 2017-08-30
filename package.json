@@ -2,15 +2,22 @@
   "name": "container.player",
   "version": "0.9.1",
   "description": "A super easy jQuery powered background / container player for HTML5, YouTube & Vimeo videos.",
+  "keywords": ["html5", "video", "player", "fullscreen", "YouTube"],
   "main": "./src/container.player.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Oliver Green <oliver@boxedcode.co.uk>",
   "license": "MIT",
+  "dependencies": {
+    "jquery": "^2.2.4",
+  },
   "devDependencies": {
     "gulp": "^3.9.1",
-    "jquery": "^2.2.4",
     "laravel-elixir": "^6.0.0-10"
+  }, 
+  "repository" : {
+    "type": "git",
+    "url": "https://github.com/olsgreen/container.player.git"
   }
 }

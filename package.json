@@ -1,8 +1,8 @@
 {
   "name": "container.player",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "A super easy jQuery powered background / container player for HTML5, YouTube & Vimeo videos.",
-  "main": "container.player.js",
+  "main": "./src/container.player.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

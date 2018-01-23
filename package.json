@@ -10,7 +10,7 @@
   "author": "Oliver Green <oliver@boxedcode.co.uk>",
   "license": "MIT",
   "dependencies": {
-    "jquery": "^2.2.4"
+    "jquery": "^3.0.0"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

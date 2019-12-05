@@ -704,7 +704,8 @@
                 byline: false,
                 color: '00adef',
                 portrait: false,
-                title: false
+                title: false,
+                controls: false,
             }
         },
 
@@ -846,19 +847,21 @@
                 this.player.setVolume(0);
             }
 
+            var progress = {
+                "duration": null,
+                "percent": 0,
+                "seconds": 0
+            }
+
             // Events            
-            this.player.on('play', function(e) {
-                // We wait for the video to start playing before 
-                // fireing the 'playing' event/
-                var interval = setInterval(function() {
-                    self.player.getCurrentTime().then(function(secs) {
-                        if (secs > 0) {
-                            clearInterval(interval);
-                            self.containerPlayer.videoPlaying();
-                        }
-                    });
-                }, 50);
-            });
+            this.player.on('progress', (function(newProgress) {
+                // Fix to emit the 'playing' event on mobile devices.
+                if (progress.seconds === 0 && newProgress.seconds > progress.seconds) {
+                    this.containerPlayer.videoPlaying()
+                    progress = newProgress
+                }
+            }).bind(this));
+            this.player.on('play', this.containerPlayer.videoPlaying.bind(this.containerPlayer));
             this.player.on('pause', this.containerPlayer.videoPaused.bind(this.containerPlayer));
             this.player.on('ended', this.containerPlayer.videoEnded.bind(this.containerPlayer));
             this.player.on('loaded', this.containerPlayer.videoLoaded.bind(this.containerPlayer));

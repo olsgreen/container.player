@@ -1,6 +1,6 @@
 {
   "name": "container.player",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "A super easy jQuery powered background / container player for HTML5, YouTube & Vimeo videos.",
   "keywords": [
     "html5",

@@ -829,7 +829,11 @@
 
             // Due to the Vimeo JS API not supporting their experimental background 
             // switch, we must build the iFrame manually and then attach their API.
-            var $iframe = $('<iframe></iframe>').prop('src', this.getVideoUrl());
+            var $iframe = $('<iframe></iframe>')
+                $iframe.prop('src', this.getVideoUrl());
+                $iframe.prop('frameborder', '0');
+                $iframe.prop('allowfullscreen', '1');
+                $iframe.prop('allow', 'autoplay; encrypted-media');
 
             // Attach the frame
             this.containerPlayer.player.$inner.append($iframe);
